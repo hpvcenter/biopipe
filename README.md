@@ -5,7 +5,7 @@ Biopipe is a collection of bioinformatics programs setup to process sequencing d
 
 ### Flow chart
 
-<img src="/biopipe_flow.png" height="65" width="65" >
+<img src="/biopipe_flow.png" height="85%" width="65%" >
 
 
 
