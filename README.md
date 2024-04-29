@@ -17,4 +17,4 @@ The content of the repository is as follows:
 - jobs_config - Hopsworks Jobs configuration JSONs
 - airflow_pipeline - Python script for the running the pipeline as Airflow DAG
 
-To run the pipeline we need a running Hospworks cluster.
+To run the pipeline we need a running Hospworks cluster. To know more about open-source version of Hopsworks and installation check the [github repo](https://github.com/dhananjay-mk/hopsworks).
