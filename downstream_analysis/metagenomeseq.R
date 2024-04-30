@@ -3,8 +3,13 @@ library(phyloseq)
 library(funrar)
 library(superheat)
 
+ps_relab <- transform_sample_counts(ps, function(x) x / sum(x) )
+ps_tofilt <- genefilter_sample(ps_relab, filterfun_sample(function(x) x >= 0.005), A = nsamples(ps)*0.1) # Cut-off for relab and prevalence
+ps_filt <- prune_taxa(taxa_names(ps), ps_tofilt)                                    
+ps <- prune_taxa(taxa_sums(ps)>0), ps_filt)
+ps <- prune_samples(!is.na(sample_data(ps)$Group), ps)
 MRexperiment_filter <- phyloseq_to_metagenomeSeq(ps)
-MRexperiment_filter_prev <- filterData(MRexperiment_filter, present = n)
+# MRexperiment_filter_prev <- filterData(MRexperiment_filter, present = n) # Custom cut-off for only prevalence
 # Normalize (CSS) the table and export the count matrix (filtered)
 p <- cumNormStatFast(MRexperiment_filter_prev) # Default value being used
 MRexperiment_filter_prev <- cumNorm(MRexperiment_filter_prev, p = p)
