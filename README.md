@@ -2,6 +2,7 @@
 Taxonomy classification pipeline (bacteria, virus, fungi)
 
 Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
+Biopipe was designed to comprise the following steps: quality trimming (trimmomatic), human genome filtering (nextgenmap), taxonomy classification (Kraken2), cut-off settlement and downstream analysis (R scripts).
 
 ### Flow chart
 
