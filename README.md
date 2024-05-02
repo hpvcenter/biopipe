@@ -24,6 +24,8 @@ The content of the repository is as follows:
 - airflow_pipeline - Python script for the running the pipeline as Airflow DAG
 - downstream_analysis - R scripts for diversity analysis (including converstion to biom, alpha and beta diversity and differencial abundance analysis)
 
+### Installation 
+
 To setup the pipeline we first need a running Hospworks cluster. To know more about open-source version of Hopsworks and installation check the [github repo](https://github.com/dhananjay-mk/hopsworks) or visit the official [documentation](https://docs.hopsworks.ai/latest/)
 
 Once the Hopsworks cluster is installed, the pipeline can be setup in below steps:
