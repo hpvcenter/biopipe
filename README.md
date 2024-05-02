@@ -20,7 +20,6 @@ The content of the repository is as follows:
 
 - src - contains the source Jupyter notebooks files for each bioinformatic program
 - settings - consists configuration file for arguments to the program in YAML format
-- jobs_config - Hopsworks Jobs configuration JSONs
 - airflow_pipeline - Python script for the running the pipeline as Airflow DAG
 - downstream_analysis - R scripts for diversity analysis (including converstion to biom, alpha and beta diversity and differencial abundance analysis)
 
