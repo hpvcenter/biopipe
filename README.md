@@ -29,7 +29,15 @@ The content of the repository is as follows:
 To setup the pipeline we first need a running Hospworks cluster. To know more about open-source version of Hopsworks and installation check the [github repo](https://github.com/dhananjay-mk/hopsworks) or visit the official [documentation](https://docs.hopsworks.ai/latest/)
 
 Once the Hopsworks cluster is installed, the pipeline can be setup in below steps:
-
+ 1. Create a Hopsworks project
+ 1. Install the packages using PyPI or conda installer in the Project Environment
+    
+        * trimmomatic - upload jar
+        - cutadapt- pip 
+        - nextgenmap - conda
+        - samtools - conda
+        - kraken2 - conda or build from source
+        
  1. Create datasets for output and input. Upload the data into the input dataset
  2. Clone this repo into the Hopsworks project or upload the source code 
  3. Modify the settings.yml
