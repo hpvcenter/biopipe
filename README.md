@@ -31,15 +31,16 @@ To setup the pipeline we first need a running Hospworks cluster. To know more ab
 Once the Hopsworks cluster is installed, the pipeline can be setup in below steps:
  1. Create a Hopsworks project
  1. Install the packages using PyPI or conda installer in the Project Environment
-    
-        * trimmomatic - upload jar
-        - cutadapt- pip 
-        - nextgenmap - conda
-        - samtools - conda
-        - kraken2 - conda or build from source
-        
- 1. Create datasets for output and input. Upload the data into the input dataset
- 2. Clone this repo into the Hopsworks project or upload the source code 
- 3. Modify the settings.yml
- 4. Create jobs. You may use the jobs_config JSON files to import the job configs
- 5. Upload the airflow pipeline python script. This contains the Airflow DAG. You have the modify project name, user name and provide a unique DAG name
+
+    - **trimmomatic** - upload jar
+    - **cutadapt**- pip 
+    - **nextgenmap** - conda
+    - **samtools** - conda
+    - **pysam** - pip
+    - **kraken2** - build from source
+
+ 1. Create datasets for output and input. Upload the data to be processed into the input dataset
+ 2. Clone this repo into the Hopsworks project or upload the source code inside the `Jupyter` dataset.
+ 3. Modify the `settings.yml` to have the correct `OUTPUT_DATASET` path, `INPUT_ROOT_PATH` and a work directory in `RUN_FOLDER` to store all the output sub-folders. Next, check and modify the path parameters for each job step and any arguments to the programs you want to change. e.g. kraken2 reference database path.
+ 4. Create jobs for each program. Adjust the number of executors and its memory in `Advanced configuration` according to the resources available in the cluster.
+ 5. Upload the airflow pipeline python script. This contains the Airflow DAG. You have the modify `PROJECT_NAME`, `DAG_OWNER` to the Hopsworks username and provide a unique DAG name under `dag_id`. Also modify the `SETTINGS` field to the correct project path of the `settings.yml` you created.
