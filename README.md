@@ -2,7 +2,12 @@
 Taxonomy classification pipeline (bacteria, virus, fungi)
 
 Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
-Biopipe was designed to comprise the following steps: quality trimming ([trimmomatic](https://github.com/usadellab/Trimmomatic) and [cutadapt](https://github.com/marcelm/cutadapt/)), human genome filtering ([nextgenmap](https://github.com/Cibiv/NextGenMap)), [samtools](https://github.com/samtools/samtools), taxonomy classification ([Kraken2](https://github.com/DerrickWood/kraken2)), cut-off settlement and downstream analysis (R scripts including: [Kraken biom](https://github.com/smdabdoub/kraken-biom/tree/master), [Phyloseq](https://github.com/joey711/phyloseq), [Metagenomeseq](https://github.com/HCBravoLab/metagenomeSeq)).
+Biopipe was designed to comprise the following steps: 
+
+- quality trimming ([trimmomatic](https://github.com/usadellab/Trimmomatic) and [cutadapt](https://github.com/marcelm/cutadapt/))
+- human genome filtering ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools))
+- taxonomy classification ([Kraken2](https://github.com/DerrickWood/kraken2)) 
+- cut-off settlement and downstream analysis (R scripts including: [Kraken biom](https://github.com/smdabdoub/kraken-biom/tree/master), [Phyloseq](https://github.com/joey711/phyloseq), [Metagenomeseq](https://github.com/HCBravoLab/metagenomeSeq)).
 
 ### Flow chart
 
