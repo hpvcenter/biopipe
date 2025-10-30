@@ -46,7 +46,7 @@ Once the Hopsworks cluster is installed, the pipeline can be setup in below step
     - **samtools** - conda
     - **pysam** - pip
     - **kraken2** - build from source
-    - **braken2** - build from source
+    - **bracken2** - build from source
 
  3. Create datasets for output and input. Upload the data to be processed into the input dataset
  4. Clone this repo into the Hopsworks project or upload the source code inside the `Jupyter` dataset.
