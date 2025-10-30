@@ -23,7 +23,7 @@ Biopipe was designed to comprise the following steps:
 
 ### Flow chart
 
-<img src="/flowchart.jpg" height="85%" width="65%" >
+<img src="/Flowchart.png" height="85%" width="65%" >
 
 
 ### Contents
