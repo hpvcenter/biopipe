@@ -1,5 +1,5 @@
 # Biopipe
-Biopipe is an open-source, modular pipeline for standardized bioinformatic preprocessing and taxonomic classification of metagenomic sequencing data from environmental and clinical sources.
+Biopipe is modular data-parallel pipeline, build on open-source tools, for standardized bioinformatic preprocessing and taxonomic classification of metagenomic sequencing data from environmental and clinical sources.
 It enables parallelized, reproducible execution on Hopsworks, using distributed computing to handle large datasets efficiently.
 
 This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.
