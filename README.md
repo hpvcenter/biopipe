@@ -5,6 +5,7 @@ This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynami
 
 
 **Overview**
+
 Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
 Biopipe consists of two main modules:
   1) Preprocessing of sequencing data (adapter trimming, quality filtering, human read removal)
