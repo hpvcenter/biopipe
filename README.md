@@ -1,6 +1,7 @@
 # Biopipe
 Biopipe is an open-source, modular pipeline for standardized bioinformatic preprocessing and taxonomic classification of metagenomic sequencing data from environmental and clinical sources.
 It enables parallelized, reproducible execution on Hopsworks, using distributed computing to handle large datasets efficiently.
+
 This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.
 
 
@@ -8,8 +9,9 @@ This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynami
 
 Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
 Biopipe consists of two main modules:
-  1) Preprocessing of sequencing data (adapter trimming, quality filtering, human read removal)
-  2) Taxonomic classification using Kraken2 and Bracken
+  1) Preprocessing of sequencing data (adapter trimming, quality filtering, human read removal).
+  2) Taxonomic classification using Kraken2 and Bracken.
+  3) 
 Each step runs as a configurable, containerized job within the Hopsworks environment, supporting distributed execution via Apache Spark.
 Biopipe was designed to comprise the following steps: 
 
