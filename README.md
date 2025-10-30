@@ -8,21 +8,23 @@ This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynami
 **Overview**
 
 Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
+
 Biopipe consists of two main modules:
   1) Preprocessing of sequencing data (adapter trimming, quality filtering, human read removal).
   2) Taxonomic classification using Kraken2 and Bracken.
-  3) 
 Each step runs as a configurable, containerized job within the Hopsworks environment, supporting distributed execution via Apache Spark.
 Biopipe was designed to comprise the following steps: 
 
 **Pipeline Components**
 1. Preprocessing of sequencing data (adapter trimming, quality filtering, human genome filtering)
-       a)  Adapter trimming and quality filtering	Trimmomatic ([trimmomatic](https://github.com/usadellab/Trimmomatic))
-           Removes low-quality bases and adapters (min length: 36 bp; sliding window: 4:15).
-       b)  Human read filtering	NextGenMap ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools))
-          	Nextgenmap maps reads against human reference genome (GRCh38) using >95% identity over ≥75% read length.
-	          Samtools extracts non-human reads and reconverts to FASTQ format.
-2. Taxonomic classification 
+   - Adapter trimming and quality filtering
+     Trimmomatic ([trimmomatic](https://github.com/usadellab/Trimmomatic))
+     Removes low-quality bases and adapters (min length: 36 bp; sliding window: 4:15).
+   - Human read filtering
+     NextGenMap ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools))
+     Nextgenmap maps reads against human reference genome (GRCh38) using >95% identity over ≥75% read length.
+	Samtools extracts non-human reads and reconverts to FASTQ format.
+3. Taxonomic classification 
        a) Kraken2 ([Kraken2](https://github.com/DerrickWood/kraken2))
        b) Abundance estimation Bracken. Refines taxonomic abundances to the genus level.
 
