@@ -1,132 +1,82 @@
-# Dataset for pipelines outputs
-OUTPUT_DATASET: benchmark/
-# Raw Input Dataset hdfs path
-INPUT_ROOT_PATH: &INPUT_ROOT_RAW raw/benchmark
-# Current run sub folder. All outputs created under this folder
-RUN_FOLDER: run_raw
-
-
-
+# NOTE: modify settings to appropriate input/paths and parametersbefore running
 # Number of job in the pipeline (in parenthesis the name of the job in the cluster)
 
-# job 1 (removeHuman)
-# Human mapped reads
-Unhuman:
-  INPUT_ROOT : *INPUT_ROOT_RAW
-  OUTPUT_BAM : Extraction_nonhuman_raw
-  FILTER_BED : References/human1.bed
-  THREADS : 16
+# Dataset for pipelines outputs
+OUTPUT_DATASET: waste_water/
+# Raw Input Dataset hdfs path
+INPUT_ROOT_PATH: &INPUT_ROOT_RAW waste_water/rawfiles
+# Current run sub folder. All outputs created under this folder
+RUN_FOLDER: output
 
-# job 2 , job 6 (SortNConvert) # Warning: modify settings before running job 6.
-SortConvert:
-# As job 2
-  INPUT_ROOT : *INPUT_ROOT_RAW
-  OUTPUT_FASTQ: FASTQ
-# As job 6
-#  INPUT_ROOT : Nonhuman/bam
-#  OUTPUT_FASTQ : Nonhuman/sorted
 
-  SPLIT_PAIRS : False # True to split into separate fastq files for R1 and R2 reads for paired end files, False to create single fastq file
-  THREADS : 16
-
-# job 3 (Trimmomatic)
-# for trimmomatic
+# job 1 (Trimmomatic)
 Trimmomatic:
-  INPUT_ROOT : benchmark/run_raw/FASTQ
-  OUTPUT_SINGLE : Trimmed/single
-  OUTPUT_PAIRED : Trimmed/pair
-  OUTPUT_UNPAIRED : Trimmed/unpair
+  INPUT_ROOT : waste_water/rawfiles
+  OUTPUT_SINGLE : output/trim/single
+  OUTPUT_PAIRED : output/trim/pair
+  OUTPUT_UNPAIRED : output/trim/unpair
   JAR: Tools/trimmomatic/trimmomatic-0.39.jar
-  ADAPTER_PAIR: Tools/trimmomatic/adapters/TruSeq3-PE-2.fa
+  ADAPTER_PAIR: Tools/trimmomatic/adapters/NexteraPE-PE.fa
   ADAPTER_SINGLE: Tools/trimmomatic/adapters/TruSeq3-SE.fa
   SAVE_UNPAIRED : True
   USE_CUTADAPT : True # use True to run CUTADAPT on R2 files or False to skip
-  IS_RNA : True       # use True for RNA or False for DNA
-  LOGS_ROOT : Logs/Trimmomatic
+  IS_RNA : False       # use True for RNA or False for DNA
+  LOGS_ROOT : Logs/ww/Trimmomatic
   # command args
   PHRED : phred33
   LEADING : 3
   TRAILING : 3
   SLIDINGWINDOW : '4:15'
-  MINLEN : 18
-  THREADS : 8
+  MINLEN : 36
+  THREADS : 4
 
-# job 4 (Nextgenmap)
+# job 2 (Nextgenmap)
 # for nextgenmap
 Nextgenmap :
-  INPUT_ROOT :  Trimmed/
+  INPUT_ROOT :  trim/pair
   OUTPUT_ROOT : NGM/
   REFERENCE_FILE : References/Homo_sapiens.GRCh38.dna.primary_assembly.fa
   MIN-IDENTITY : 0.95
   MIN-RESIDUES : 0.75
-  THREADS : 16
+  THREADS : 4
   LOGS_ROOT : Logs/NGM
   VERY_FAST : True  ### True to run ngm with parameter '--very-fast'. Read NGM docs for more about this parameter.
   INSTALL_NGM : False
 
 
-# job 5 (ConvertSam2BamUnmapped)
+# job 3 (ConvertSam2BamUnmapped)
 FilterSAM:
   INPUT_ROOT : NGM/
   OUTPUT_BAM : Nonhuman/bam
-  THREADS : 16
+  THREADS : 4
 
+# As job 4 (SortNConvert)
+SortConvert:
+  INPUT_ROOT : Nonhuman/bam
+  OUTPUT_FASTQ : Nonhuman/sorted
+  SPLIT_PAIRS : False # True to split into separate fastq files for R1 and R2 reads for paired end files, False to create single fastq file
+  THREADS : 4
 
-
-# job 7 (kraken)
+# job 5 (kraken)
 Kraken :
     INPUT_ROOT : Nonhuman/sorted
     OUTPUT_ROOT : Kraken/
     KRAKEN_PATH : Tools/kk2.1.2
-    KRAKEN_DB_PATH : hdfs:///Projects/HPV_meta/References/kraken2_db
+    KRAKEN_DB_PATH : References/k2_pluspf_20240605
     SAVE_FULL_OUTPUT : True
-    THREADS : 16
+    THREADS : 4
 
-# job 8 (diamond)
-# for diamond
-Diamond :
-  INPUT_ROOT : Nonhuman/sorted
-  OUTPUT_ROOT : Diamond/
-  REFERENCE_FASTA : References/HPVproteinsincludingnonoficial_201119.faa  # FASTA reference path
-  DIAMOND_TOOL : Tools/diamond/v2.0.7/diamond
-  OUTPUT_PREFIX : Hpv_
-  # command args
-  DIAMOND_RUN : blastx
-  TOP : 1
-  COMPRESS : 0
-  OUTPUT_FORMAT: 6
-  ADVANCED_TUNING : -c1
-  LOGS_ROOT : Logs/Diamond
+# job 6 (Bracken)
+Bracken:
+    INPUT_ROOT : Kraken/report
+    OUTPUT_ROOT : Braken/
+    KRAKEN_DB_PATH : References/k2_pluspf_20240605 #/Projects/HPV_meta/References/viral_april_2022 #References/k2_pluspf_20240605
+    THREADS : 4
+    READ_LENGTH : 150
 
-# ************************************************
-# Extras
 
-# for Postprocessing SAM files
-Idxstat:
-  INPUT_ROOT : TCGA_Data/chunk11
-  OUTPUT_INDEX : Index/Index_last
-  OUTPUT_STAT: Index/Idxstat_last
-  THREADS : 16
 
-# for upload from local
-Upload:
-  INPUT_ROOT :
-  OUTPUT_ROOT :
-  THREASHOLD_SIZE :
-  MAX_SIZE_PAIR_FILTER :
 
-# for splitting large FASTQ file
-Split_Fastq:
-  INPUT_ROOT :
 
-Merge:
-  INPUT_ROOT : Nonhuman/bam
-  OUTPUT_MERGE : Nonhuman/merged
-  SAMTOOLS_PATH : Tools/samtools
-  THREADS : 16
 
-# diamond post-processing scripts to create stats table
-Filter_Diamond :
-  INPUT_ROOT: Diamond
-  OUTPUT_ROOT: Diamond/report
-  REPORT_FILE: report_diamond_run_210521_uniqueNexclusive.txt
+
