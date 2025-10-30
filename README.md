@@ -17,16 +17,9 @@ Biopipe was designed to comprise the following steps:
 
 **Pipeline Components**
 1. Preprocessing of sequencing data (adapter trimming, quality filtering, human genome filtering)
-   - Adapter trimming and quality filtering
-     Trimmomatic ([trimmomatic](https://github.com/usadellab/Trimmomatic))
-     Removes low-quality bases and adapters (min length: 36 bp; sliding window: 4:15).
-   - Human read filtering
-     NextGenMap ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools))
-     Nextgenmap maps reads against human reference genome (GRCh38) using >95% identity over ≥75% read length.
-	Samtools extracts non-human reads and reconverts to FASTQ format.
-3. Taxonomic classification 
-       a) Kraken2 ([Kraken2](https://github.com/DerrickWood/kraken2))
-       b) Abundance estimation Bracken. Refines taxonomic abundances to the genus level.
+   - Adapter trimming and quality filtering with Trimmomatic ([trimmomatic](https://github.com/usadellab/Trimmomatic)). Trimmomatic removes low-quality bases and adapters (min length: 36 bp; sliding window: 4:15).
+   - Human read filtering with NextGenMap ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools)). Nextgenmap maps reads against human reference genome (GRCh38) using >95% identity over ≥75% read length. Samtools extracts non-human reads and reconverts to FASTQ format.
+3. Taxonomic classification with Kraken2 ([Kraken2](https://github.com/DerrickWood/kraken2)) and abundance estimation with Bracken ([Bracken] (https://github.com/jenniferlu717/Bracken)) , which refines taxonomic abundances to the genus level.
 
 ### Flow chart
 
