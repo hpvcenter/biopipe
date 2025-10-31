@@ -42,7 +42,7 @@ Once the Hopsworks cluster is installed, the pipeline can be setup in below step
  2. Install the packages using PyPI or conda installer in the Project Environment
 
     - **trimmomatic** - upload jar
-    - **cutadapt** (optional) – install via conda
+    - **cutadapt** (optional) – conda
     - **nextgenmap** - conda
     - **samtools** - conda
     - **pysam** - pip
