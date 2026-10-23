@@ -1,0 +1,49 @@
+{
+  "storage": "hopsworks_api",
+  "output_root": "Resources/biopipe-v2",
+  "scratch_root": "/scratch",
+  "threads": 2,
+  "samples": [
+    {
+      "id": "sample_01",
+      "r1": "Resources/reads/sample_01_R1.fastq.gz",
+      "r2": "Resources/reads/sample_01_R2.fastq.gz"
+    }
+  ],
+  "resources": {
+    "trimmomatic_jar": null,
+    "adapter_pair": "Resources/references/adapters/NexteraPE-PE.fa",
+    "adapter_single": "Resources/references/adapters/TruSeq3-SE.fa",
+    "human_reference_dir": "Resources/references/human",
+    "human_fasta_name": "GRCh38.fa",
+    "kraken_db": "Resources/references/kraken2-db"
+  },
+  "tools": {
+    "trimmomatic": "trimmomatic",
+    "java": "java",
+    "ngm": "ngm",
+    "samtools": "samtools",
+    "kraken2": "kraken2",
+    "cutadapt": "cutadapt"
+  },
+  "trim": {
+    "phred": "phred33",
+    "leading": 3,
+    "trailing": 3,
+    "sliding_window": "4:15",
+    "min_len": 36,
+    "cutadapt_r2_bases": 0
+  },
+  "mapping": {
+    "min_identity": 0.95,
+    "min_residues": 0.75,
+    "very_fast": true
+  },
+  "kraken": {
+    "memory_mapping": true
+  },
+  "publish": {
+    "fastq": false,
+    "kraken_output": false
+  }
+}
