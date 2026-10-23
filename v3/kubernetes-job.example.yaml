@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: biopipe-v3
+  namespace: YOUR_NAMESPACE
+spec:
+  completionMode: Indexed
+  completions: 1 # Match the number of samples in config.json.
+  parallelism: 1 # Increase after sizing database RAM and node scratch.
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: biopipe
+          image: YOUR_REGISTRY/biopipe-v3:YOUR_TAG
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config
+            - /config/config.json
+            - --mode
+            - run
+            - --sample-index
+            - "$(JOB_COMPLETION_INDEX)"
+          env:
+            - name: HADOOP_CONF_DIR
+              value: /hadoop-conf
+          resources:
+            requests:
+              cpu: "2"
+              memory: 12Gi
+              ephemeral-storage: 30Gi
+            limits:
+              cpu: "2"
+              memory: 12Gi
+              ephemeral-storage: 30Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: hadoop-conf
+              mountPath: /hadoop-conf
+              readOnly: true
+            - name: scratch
+              mountPath: /scratch
+      volumes:
+        - name: config
+          configMap:
+            name: biopipe-v3-config
+            items:
+              - key: config.json
+                path: config.json
+        - name: hadoop-conf
+          configMap:
+            name: hadoop-client-conf
+        - name: scratch
+          emptyDir:
+            sizeLimit: 30Gi

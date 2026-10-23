@@ -2,6 +2,11 @@
 Biopipe is modular data-parallel pipeline, build on open-source tools, for standardized bioinformatic preprocessing and taxonomic classification of metagenomic sequencing data from environmental and clinical sources.
 It enables parallelized, reproducible execution on Hopsworks, using distributed computing to handle large datasets efficiently.
 
+## Development status
+
+- [x] **Option 1: low effort improvements** — the [v2 per-sample pipeline](v2/README.md) keeps intermediate files local, runs the processing chain in one task, and provides a reusable tool image and Kubernetes Job example. Implementation and local validation are complete. A small Hopsworks cluster integration check is still pending.
+- [ ] **Option 2: portable open-source contribution** — [v3](v3/README.md) now implements the first local/HDFS runner and Kubernetes Indexed Job path described in the [proposal](docs/generalization.md). Real HDFS/Kubernetes validation and a fair performance benchmark remain.
+
 This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.
 
 
