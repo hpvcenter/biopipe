@@ -51,6 +51,24 @@ default image; a two-sample Spark `local[2]` run completed inside it with fake
 tool scripts. The real tools were not run on real data. Spark prints a harmless
 `ps: command not found` warning.
 
+## Spark on Kubernetes
+
+The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spark can start
+the driver and executor pods from it. The `spark-submit` command, service account, volume
+and pull secret are the same as for [v5](../v5/README.md#spark-on-kubernetes-no-hopsworks);
+only the image and the config differ, and the whole pipeline is a single Spark job:
+
+```sh
+docker build --target spark-k8s -t REGISTRY/biopipe-v4:TAG v4 && docker push REGISTRY/biopipe-v4:TAG
+```
+
+Verified end to end on a 3-node Kubernetes cluster (Spark 3.5.3, 2 executors with 1 core and
+2048 MB each, one ReadWriteOnce volume) with the real tools: one task per sample ran on each
+executor, a second run skipped both samples, and the Kraken2 report and per-read output were
+byte-identical to those of the v5 step-wise runner on the same input. This is a functional
+check, not a measure of classification quality or speed. Shared storage held about 6 MB of
+final output against about 100 MB of kept intermediates for v5.
+
 ## Executor requirements
 
 - The tools from `environment.yml` on `PATH` (or absolute paths in `tools`):
