@@ -1,17 +1,17 @@
-# Biopipe v4: Spark adapter for any cluster
+# Biopipe single-task variant: Spark adapter for any cluster
 
-v4 is the v3 sample executor (`biopipe.py`: trimming, host removal, Kraken2,
+This variant is the v3 sample executor (`biopipe.py`: trimming, host removal, Kraken2,
 local scratch, atomic completion markers) plus `spark_runner.py`, which runs
 **one Spark task per sample**. It uses no Hopsworks API and works wherever
 Spark can schedule Python tasks (standalone, YARN, Kubernetes, local).
-v2's Spark path depends on `hops.hdfs`; v3 has no Spark. v4 is neither.
+v2's Spark path depends on `hops.hdfs`; v3 has no Spark. This variant is neither.
 
 ## Run
 
 ```sh
-spark-submit --conf spark.task.cpus=4 v4/spark_runner.py --config cfg.json --mode run
+spark-submit --conf spark.task.cpus=4 single-task/spark_runner.py --config cfg.json --mode run
 # local smoke test
-python v4/spark_runner.py --config cfg.json --mode run --master 'local[2]'
+python single-task/spark_runner.py --config cfg.json --mode run --master 'local[2]'
 ```
 
 `spark.task.cpus` must equal the config's `threads` (checked at start), so
@@ -29,12 +29,12 @@ samtools, Kraken2, cutadapt), Java 17 and PySpark 3.5.3, so users need nothing
 else installed. The default entrypoint is `spark_runner.py`.
 
 ```sh
-docker build -t biopipe-v4 v4                      # local files, Spark local mode
-docker build --target hdfs -t biopipe-v4:hdfs v4   # adds the Hadoop client for hdfs://
+docker build -t biopipe-single-task single-task   # local files, Spark local mode
+docker build --target hdfs -t biopipe-single-task:hdfs single-task   # adds the Hadoop client for hdfs://
 
 docker run --rm --user root \
   -v $PWD/my-config:/config:ro -v /path/to/data:/data -v /fast/scratch:/scratch \
-  biopipe-v4 --config /config/config.json --mode run --master 'local[4]'
+  biopipe-single-task --config /config/config.json --mode run --master 'local[4]'
 ```
 
 Config paths are container paths (`/data/...`, `/scratch`). The data and
@@ -55,19 +55,19 @@ tool scripts. The real tools were not run on real data. Spark prints a harmless
 
 The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spark can start
 the driver and executor pods from it. The `spark-submit` command, service account, volume
-and pull secret are the same as for [v5](../v5/README.md#spark-on-kubernetes-no-hopsworks);
+and pull secret are the same as for the [step-wise variant](../step-wise/README.md#spark-on-kubernetes-no-hopsworks);
 only the image and the config differ, and the whole pipeline is a single Spark job:
 
 ```sh
-docker build --target spark-k8s -t REGISTRY/biopipe-v4:TAG v4 && docker push REGISTRY/biopipe-v4:TAG
+docker build --target spark-k8s -t REGISTRY/biopipe-single-task:TAG single-task && docker push REGISTRY/biopipe-single-task:TAG
 ```
 
 Verified end to end on a 3-node Kubernetes cluster (Spark 3.5.3, 2 executors with 1 core and
 2048 MB each, one ReadWriteOnce volume) with the real tools: one task per sample ran on each
 executor, a second run skipped both samples, and the Kraken2 report and per-read output were
-byte-identical to those of the v5 step-wise runner on the same input. This is a functional
+byte-identical to those of the step-wise variant on the same input. This is a functional
 check, not a measure of classification quality or speed. Shared storage held about 6 MB of
-final output against about 100 MB of kept intermediates for v5.
+final output against about 100 MB of kept intermediates for the step-wise variant.
 
 ## Executor requirements
 

@@ -1,4 +1,4 @@
-"""Run the v4 sample executor as one Spark task per sample on any Spark cluster.
+"""Run the single-task sample executor as one Spark task per sample on any Spark cluster.
 
 No Hopsworks API is used. Spark only schedules tasks; files move through the
 storage backend in ``biopipe.py`` (local paths or the ``hadoop fs`` CLI), and the

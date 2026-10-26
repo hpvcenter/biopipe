@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # Optional: build everything (tools, Spark runner) into one image.
 #
-#   docker build -t biopipe-v4 v4                    # local files, Spark local mode
-#   docker build --target hdfs -t biopipe-v4:hdfs v4  # adds the Hadoop client for hdfs://
+#   docker build -t biopipe-single-task single-task   # local files, Spark local mode
+#   docker build --target hdfs -t biopipe-single-task:hdfs single-task  # adds the Hadoop client for hdfs://
 FROM mambaorg/micromamba:2.9.0 AS base
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
 RUN micromamba install --yes --name base --file /tmp/environment.yml && micromamba clean --all --yes
@@ -28,7 +28,7 @@ RUN /opt/hadoop/bin/hadoop version
 # Spark-on-Kubernetes target: Apache Spark's own image (entrypoint, user, Spark home)
 # plus the bioinformatics tools. Spark starts driver and executor pods from this image
 # (spark.kubernetes.container.image); /opt/tools/bin is last on PATH so Spark keeps its python3.
-#   docker build --target spark-k8s -t biopipe-v4:spark-k8s v4
+#   docker build --target spark-k8s -t biopipe-single-task:spark-k8s single-task
 FROM apache/spark:3.5.3-scala2.12-java17-python3-ubuntu AS spark-k8s
 USER root
 COPY --from=mambaorg/micromamba:2.9.0 /bin/micromamba /usr/local/bin/micromamba

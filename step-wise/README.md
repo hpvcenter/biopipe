@@ -1,11 +1,11 @@
-# Biopipe v5: step-wise Spark jobs, no Hopsworks
+# Biopipe step-wise variant: one Spark job per step, no Hopsworks
 
-v5 runs the same tools as v4 (Trimmomatic, NextGenMap, samtools, Kraken2), but each
+This variant runs the same tools as the [single-task variant](../single-task/README.md) (Trimmomatic, NextGenMap, samtools, Kraken2), but each
 pipeline **step is its own Spark job**, with one task per sample. This is the
 execution pattern of the first Hopsworks version (one job per step, files in
 shared storage between steps), rebuilt without any Hopsworks API.
 
-| | v4 | v5 |
+| | Single-task variant | Step-wise variant |
 |---|---|---|
 | Unit of Spark work | one task = whole pipeline for one sample | one job per step, one task per sample |
 | Intermediate files | local scratch only | shared storage (local path or HDFS) between steps |
@@ -13,7 +13,7 @@ shared storage between steps), rebuilt without any Hopsworks API.
 | Data transfer | inputs in once, results out once | every step reads its inputs and writes its outputs |
 | Per-step timing | inside each sample's metrics | also per Spark job in the driver summary |
 
-Use v4 when you want the least data movement. Use v5 when you want step-level
+Use the single-task variant when you want the least data movement. Use the step-wise variant when you want step-level
 resume, per-step timing on a cluster, or a like-for-like comparison with the
 original per-step design (the two can be benchmarked against each other).
 
@@ -28,22 +28,22 @@ original per-step design (the two can be benchmarked against each other).
 | `classify` | Kraken2 | non-human FASTQ, Kraken DB | `kraken_report.txt` (+ `kraken_output.txt` if `publish.kraken_output`) |
 
 Every step also writes its command log (`step.log`). Input is FASTQ; BAM input and
-anything after the Kraken2 report (BIOM conversion, statistics) are outside v5.
+anything after the Kraken2 report (BIOM conversion, statistics) are outside this variant.
 
 ## Run
 
 ```sh
 # all steps, one Spark job each
-spark-submit --conf spark.task.cpus=4 v5/spark_runner.py --config cfg.json --mode run
+spark-submit --conf spark.task.cpus=4 step-wise/spark_runner.py --config cfg.json --mode run
 # a subset, e.g. in separate invocations (different resources per step)
-spark-submit ... v5/spark_runner.py --config cfg.json --mode run --steps trim,map
+spark-submit ... step-wise/spark_runner.py --config cfg.json --mode run --steps trim,map
 # local smoke test
-python v5/spark_runner.py --config cfg.json --mode run --master 'local[2]'
+python step-wise/spark_runner.py --config cfg.json --mode run --master 'local[2]'
 # without Spark, one sample at a time
-python v5/biopipe.py --config cfg.json --mode run --sample-index 0
+python step-wise/biopipe.py --config cfg.json --mode run --sample-index 0
 ```
 
-The config is the v4 JSON format (`example.local.json`, `example.hdfs.json`).
+The config uses the same JSON format as the single-task variant (`example.local.json`, `example.hdfs.json`).
 `spark.task.cpus` must equal `threads` (checked). The driver prints one JSON line per
 sample and step, then a summary with the wall time of each step's Spark job:
 
@@ -69,13 +69,13 @@ The fingerprint ignores `threads`, `reference_cache`, `scratch_root` and
 
 ## Docker
 
-Same image layout as v4 (`Dockerfile`, targets `local` and `hdfs`; see v4 README
+Same image layout as the single-task variant (`Dockerfile`, targets `local` and `hdfs`; see its README
 for the run command and mounts):
 
 ```sh
-docker build -t biopipe-v5 v5
+docker build -t biopipe-stepwise step-wise
 docker run --rm --user root -v my-config:/config:ro -v data:/data -v scratch:/scratch \
-  biopipe-v5 --config /config/config.json --mode run --master 'local[4]'
+  biopipe-stepwise --config /config/config.json --mode run --master 'local[4]'
 ```
 
 ## Spark on Kubernetes (no Hopsworks)
@@ -84,11 +84,11 @@ The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spa
 start its driver and executor pods from it:
 
 ```sh
-docker build --target spark-k8s -t REGISTRY/biopipe-v5:TAG v5 && docker push REGISTRY/biopipe-v5:TAG
+docker build --target spark-k8s -t REGISTRY/biopipe-stepwise:TAG step-wise && docker push REGISTRY/biopipe-stepwise:TAG
 spark-submit --master k8s://https://API_SERVER:6443 --deploy-mode cluster \
   --conf spark.kubernetes.namespace=NS \
   --conf spark.kubernetes.authenticate.driver.serviceAccountName=SA \
-  --conf spark.kubernetes.container.image=REGISTRY/biopipe-v5:TAG \
+  --conf spark.kubernetes.container.image=REGISTRY/biopipe-stepwise:TAG \
   --conf spark.kubernetes.container.image.pullSecrets=PULL_SECRET \
   --conf spark.executor.instances=2 --conf spark.executor.cores=1 --conf spark.executor.memory=2048m \
   --conf spark.task.cpus=1 --conf spark.dynamicAllocation.enabled=false \
@@ -124,6 +124,6 @@ shared volume (a ReadWriteOnce volume works only when all pods run on the same n
   the largest; prune `steps/<fingerprint>/map` and `unmapped` yourself once
   `classify` has finished.
 - Each step copies its inputs to scratch again, and reference files are fetched per
-  task (use `reference_cache`, per node, no eviction). Expect more transfer than v4.
+  task (use `reference_cache`, per node, no eviction). Expect more transfer than the single-task variant.
 - `publish.fastq` is ignored: the `fastq` step always keeps its FASTQ outputs.
 - A task lost to an executor failure reruns its step from the start.
