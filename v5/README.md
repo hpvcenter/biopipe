@@ -78,19 +78,48 @@ docker run --rm --user root -v my-config:/config:ro -v data:/data -v scratch:/sc
   biopipe-v5 --config /config/config.json --mode run --master 'local[4]'
 ```
 
+## Spark on Kubernetes (no Hopsworks)
+
+The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spark can
+start its driver and executor pods from it:
+
+```sh
+docker build --target spark-k8s -t REGISTRY/biopipe-v5:TAG v5 && docker push REGISTRY/biopipe-v5:TAG
+spark-submit --master k8s://https://API_SERVER:6443 --deploy-mode cluster \
+  --conf spark.kubernetes.namespace=NS \
+  --conf spark.kubernetes.authenticate.driver.serviceAccountName=SA \
+  --conf spark.kubernetes.container.image=REGISTRY/biopipe-v5:TAG \
+  --conf spark.kubernetes.container.image.pullSecrets=PULL_SECRET \
+  --conf spark.executor.instances=2 --conf spark.executor.cores=1 --conf spark.executor.memory=2048m \
+  --conf spark.task.cpus=1 --conf spark.dynamicAllocation.enabled=false \
+  --conf spark.kubernetes.driver.volumes.persistentVolumeClaim.data.options.claimName=PVC \
+  --conf spark.kubernetes.driver.volumes.persistentVolumeClaim.data.mount.path=/data \
+  --conf spark.kubernetes.executor.volumes.persistentVolumeClaim.data.options.claimName=PVC \
+  --conf spark.kubernetes.executor.volumes.persistentVolumeClaim.data.mount.path=/data \
+  local:///app/spark_runner.py --config /data/config/config.json --mode run
+```
+
+The service account needs create/get/list/watch/delete on pods, services, configmaps and
+persistentvolumeclaims in the namespace. Driver and executors must see the same data, so use a
+shared volume (a ReadWriteOnce volume works only when all pods run on the same node) or HDFS.
+
 ## Verified
 
 - 17 unit tests: step chaining, blocked steps, resume after a late failure (only
   the failed step reruns), duplicate-marker race, reference cache, a fake `hadoop fs`
   backend, and real `local[2]` Spark jobs with fake tool executables
   (`tests/test_spark.py`, skipped without pyspark).
-- The `local` image builds, and a two-sample Spark run (all steps, then a `--steps`
-  subset that was skipped) completed inside it with fake tool scripts.
+- The `local` and `spark-k8s` images build and run the full pipeline with the real tools.
+- End to end on Spark on Kubernetes (Spark 3.5.3, 3 nodes, 2 executors with 1 core and
+  2048 MB each, one ReadWriteOnce volume): all five steps ran as separate Spark jobs spread
+  over both executors, the Kraken2 report matched a local run, and a second run skipped every
+  task. This is a functional check of the code path, not a measure of classification quality
+  or speed.
 
 ## Limits
 
-- Not run with the real tools on real data, and not on a real Spark, YARN, Kubernetes
-  or HDFS cluster.
+- Cluster runs so far used Spark on Kubernetes with a node-local volume. YARN, standalone
+  Spark and HDFS storage are not covered, and neither is performance at scale.
 - Intermediates stay on shared storage and are not deleted. The SAM from `map` is
   the largest; prune `steps/<fingerprint>/map` and `unmapped` yourself once
   `classify` has finished.
