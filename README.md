@@ -23,7 +23,7 @@ Both setups include a JSON configuration example, a Conda environment, a Dockerf
 
 ## Install and run
 
-From the repository root, install the tools with Conda (or build the Docker image described in the setup README):
+From the repository root, install the tools with Conda:
 
 ```sh
 conda env create -n biopipe -f step-wise/environment.yml
@@ -31,9 +31,18 @@ conda activate biopipe
 python -m pip install 'pyspark==3.5.3'
 ```
 
+Alternatively, build the Docker image for your chosen setup:
+
+```sh
+docker build -t biopipe-stepwise step-wise
+docker build -t biopipe-single-task single-task
+```
+
+Build only the image you need. See the [step-wise Docker instructions](step-wise/README.md#docker) or [single-task Docker instructions](single-task/README.md#docker-optional) for run commands, volume mounts, and HDFS images.
+
 Copy `step-wise/example.local.json` or `single-task/example.local.json` to `config.json`. Set the input FASTQ paths, `output_root`, `scratch_root`, reference paths, and `threads`. All paths must be accessible to the process; for a Spark cluster, the input and output paths must be shared by the driver and executors. For HDFS, start from the corresponding `example.hdfs.json` and install/configure the Hadoop CLI on every executor.
 
-Run either setup locally with Spark:
+With the Conda environment, run either setup locally with Spark:
 
 ```sh
 python step-wise/spark_runner.py --config config.json --mode run --master 'local[2]'
