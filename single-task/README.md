@@ -95,11 +95,3 @@ final output against about 100 MB of kept intermediates for the step-wise varian
   `WARN`/log4j noise on stderr; other codes or messages still raise.
 - Tests: `tests/test_spark.py` runs a real `local[2]` Spark job against fake
   tool executables (skipped without pyspark).
-
-## Not yet done
-
-- YARN and HDFS storage have not been validated on a real cluster.
-- The reference cache is per node, not shared across nodes, and has no eviction.
-- Unselected orphan attempt directories are not garbage-collected.
-- Task retries after executor loss rerun the sample from scratch; there is no
-  step-level resume.
