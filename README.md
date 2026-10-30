@@ -21,6 +21,14 @@ The flowchart shows the broader pipeline design. The two current runners end at 
 
 Both setups include a JSON configuration example, a Conda environment, a Dockerfile, and a Spark runner. Use the step-wise setup for step-level reruns or the single-task setup to keep intermediate data on local scratch.
 
+## Prerequisites and infrastructure
+
+- **All runs:** Provide FASTQ reads, adapter files, a human reference, and a Kraken2 database. Install the tools and PySpark with Conda or use the supplied Docker image. Allow enough local scratch space for a sample and its references.
+- **Local Spark:** A separate cluster is unnecessary. The driver can run in `local[N]` mode with readable input files and a writable output directory.
+- **Distributed Spark:** Provide a Spark cluster (standalone, YARN, or Kubernetes) with PySpark on the driver and the bioinformatics tools on each executor. The driver and executors need access to the same input and output storage, and each executor needs writable local scratch. Set `spark.task.cpus` to the configuration's `threads` value. The supplied images and examples use Spark 3.5.3.
+- **HDFS, if used:** Install the Hadoop CLI and provide filesystem configuration and credentials on every executor. Use the `example.hdfs.json` configuration for your chosen setup.
+- **Kubernetes, if used:** Build and publish the setup's `spark-k8s` image. Provide a Spark service account with the required permissions and shared storage through a volume or HDFS. See the [step-wise](step-wise/README.md#spark-on-kubernetes) and [single-task](single-task/README.md#spark-on-kubernetes) cluster examples.
+
 ## Install and run
 
 From the repository root, install the tools with Conda:
