@@ -1,11 +1,10 @@
-# Biopipe step-wise variant: one Spark job per step, no Hopsworks
+# Biopipe step-wise setup: one Spark job per step
 
-This variant runs the same tools as the [single-task variant](../single-task/README.md) (Trimmomatic, NextGenMap, samtools, Kraken2), but each
-pipeline **step is its own Spark job**, with one task per sample. This is the
-execution pattern of the first Hopsworks version (one job per step, files in
-shared storage between steps), rebuilt without any Hopsworks API.
+This setup runs the same tools as the [single-task setup](../single-task/README.md) (Trimmomatic, NextGenMap, samtools, Kraken2), but each
+pipeline **step is its own Spark job**, with one task per sample. Intermediate
+files live on shared storage between steps.
 
-| | Single-task variant | Step-wise variant |
+| | Single-task setup | Step-wise setup |
 |---|---|---|
 | Unit of Spark work | one task = whole pipeline for one sample | one job per step, one task per sample |
 | Intermediate files | local scratch only | shared storage (local path or HDFS) between steps |
@@ -13,9 +12,8 @@ shared storage between steps), rebuilt without any Hopsworks API.
 | Data transfer | inputs in once, results out once | every step reads its inputs and writes its outputs |
 | Per-step timing | inside each sample's metrics | also per Spark job in the driver summary |
 
-Use the single-task variant when you want the least data movement. Use the step-wise variant when you want step-level
-resume, per-step timing on a cluster, or a like-for-like comparison with the
-original per-step design (the two can be benchmarked against each other).
+Use the single-task setup when you want the least data movement. Use the step-wise setup when you want step-level
+resume or per-step timing on a cluster.
 
 ## Steps
 
@@ -43,7 +41,7 @@ python step-wise/spark_runner.py --config cfg.json --mode run --master 'local[2]
 python step-wise/biopipe.py --config cfg.json --mode run --sample-index 0
 ```
 
-The config uses the same JSON format as the single-task variant (`example.local.json`, `example.hdfs.json`).
+The config uses the same JSON format as the single-task setup (`example.local.json`, `example.hdfs.json`).
 `spark.task.cpus` must equal `threads` (checked). The driver prints one JSON line per
 sample and step, then a summary with the wall time of each step's Spark job:
 
@@ -69,7 +67,7 @@ The fingerprint ignores `threads`, `reference_cache`, `scratch_root` and
 
 ## Docker
 
-Same image layout as the single-task variant (`Dockerfile`, targets `local` and `hdfs`; see its README
+Same image layout as the single-task setup (`Dockerfile`, targets `local` and `hdfs`; see its README
 for the run command and mounts):
 
 ```sh
@@ -78,7 +76,7 @@ docker run --rm --user root -v my-config:/config:ro -v data:/data -v scratch:/sc
   biopipe-stepwise --config /config/config.json --mode run --master 'local[4]'
 ```
 
-## Spark on Kubernetes (no Hopsworks)
+## Spark on Kubernetes
 
 The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spark can
 start its driver and executor pods from it:

@@ -1,10 +1,8 @@
-# Biopipe single-task variant: Spark adapter for any cluster
+# Biopipe single-task setup: one Spark task per sample
 
-This variant is the v3 sample executor (`biopipe.py`: trimming, host removal, Kraken2,
-local scratch, atomic completion markers) plus `spark_runner.py`, which runs
-**one Spark task per sample**. It uses no Hopsworks API and works wherever
-Spark can schedule Python tasks (standalone, YARN, Kubernetes, local).
-v2's Spark path depends on `hops.hdfs`; v3 has no Spark. This variant is neither.
+This setup runs trimming, host removal, and Kraken2 classification with local
+scratch and completion markers. `spark_runner.py` schedules **one Spark task per
+sample** on a local, standalone, YARN, or Kubernetes Spark cluster.
 
 ## Run
 
@@ -48,14 +46,13 @@ run in containers you control, but it is not a drop-in Spark-on-Kubernetes image
 
 Verified: both targets build; tool versions and `--mode validate` run in the
 default image; a two-sample Spark `local[2]` run completed inside it with fake
-tool scripts. The real tools were not run on real data. Spark prints a harmless
-`ps: command not found` warning.
+tool scripts. Spark prints a harmless `ps: command not found` warning.
 
 ## Spark on Kubernetes
 
 The `spark-k8s` Docker target is Apache Spark's own image plus the tools, so Spark can start
 the driver and executor pods from it. The `spark-submit` command, service account, volume
-and pull secret are the same as for the [step-wise variant](../step-wise/README.md#spark-on-kubernetes-no-hopsworks);
+and pull secret are the same as for the [step-wise setup](../step-wise/README.md#spark-on-kubernetes);
 only the image and the config differ, and the whole pipeline is a single Spark job:
 
 ```sh
@@ -76,9 +73,9 @@ final output against about 100 MB of kept intermediates for the step-wise varian
 - `storage: hdfs` needs the `hadoop` CLI and client config on every executor;
   `storage: local` needs a shared POSIX path.
 - `scratch_root` must exist locally on executors with room for a sample, the
-  human reference and the Kraken DB (see v3 README for sizing).
+  human reference and the Kraken DB.
 
-## Changes from v3
+## Storage and reruns
 
 - **Node-local reference cache.** Set `reference_cache` to an absolute local
   directory shared by tasks on a node. The first task to need an adapter file,
@@ -101,7 +98,7 @@ final output against about 100 MB of kept intermediates for the step-wise varian
 
 ## Not yet done
 
-- Not run on a real YARN/Kubernetes/HDFS cluster or with the real tools.
+- YARN and HDFS storage have not been validated on a real cluster.
 - The reference cache is per node, not shared across nodes, and has no eviction.
 - Unselected orphan attempt directories are not garbage-collected.
 - Task retries after executor loss rerun the sample from scratch; there is no

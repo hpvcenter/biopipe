@@ -1,71 +1,47 @@
 # Biopipe
-Biopipe is modular data-parallel pipeline, build on open-source tools, for standardized bioinformatic preprocessing and taxonomic classification of metagenomic sequencing data from environmental and clinical sources.
-It enables parallelized, reproducible execution on Hopsworks, using distributed computing to handle large datasets efficiently.
 
-## Development status
+Biopipe processes metagenomic FASTQ reads with Trimmomatic, optional Cutadapt, NextGenMap, samtools, and Kraken2. It uses Apache Spark to run samples in parallel and supports shared local storage or HDFS. Provide your own reads, human reference, adapter files, and Kraken2 database.
 
-- [x] **Option 1: low effort improvements** — the [v2 per-sample pipeline](v2/README.md) keeps intermediate files local, runs the processing chain in one task, and provides a reusable tool image and Kubernetes Job example. Implementation and local validation are complete. A small Hopsworks cluster integration check is still pending.
-- [ ] **Option 2: portable open-source contribution** — [v3](v3/README.md) now implements the first local/HDFS runner and Kubernetes Indexed Job path described in the [proposal](docs/generalization.md). Real HDFS/Kubernetes validation and a fair performance benchmark remain.
+## Pipeline
 
-This pipeline was used in the study: Mukhedkar D, et al. Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.
+1. Trim adapters and low-quality bases with Trimmomatic; optionally remove fixed-length bases with Cutadapt.
+2. Map reads to a human reference with NextGenMap and recover unmapped reads with samtools.
+3. Classify non-human reads with Kraken2 and write a classification report.
 
+The flowchart shows the broader pipeline design. The two current runners end at the Kraken2 report; Bracken abundance estimation is not included.
 
-**Overview**
+![Biopipe pipeline flowchart](Flowchart.png)
 
-Biopipe is a collection of bioinformatics programs setup to process sequencing data parallely on a Hopsworks cluster. 
+## Choose a setup
 
-Biopipe consists of two main modules:
-  1) Preprocessing of sequencing data (adapter trimming, quality filtering, human read removal).
-  2) Taxonomic classification using Kraken2 and Bracken.
-Each step runs as a configurable, containerized job within the Hopsworks environment, supporting distributed execution via Apache Spark.
-Biopipe was designed to comprise the following steps: 
+| Setup | Spark work | Intermediate files | Resume point |
+| --- | --- | --- | --- |
+| [Step-wise](step-wise/README.md) | One Spark job per processing step, with one task per sample | Shared storage between steps | First unfinished step |
+| [Single-task](single-task/README.md) | One Spark task runs the full pipeline for a sample | Local scratch, then final results on shared storage | Whole sample |
 
-**Pipeline Components**
-1. Preprocessing of sequencing data (adapter trimming, quality filtering, human genome filtering)
-   - Adapter trimming and quality filtering with Trimmomatic ([trimmomatic](https://github.com/usadellab/Trimmomatic)). Trimmomatic removes low-quality bases and adapters (min length: 36 bp; sliding window: 4:15). Optional additional trimming with Cutadapt ([cutadapt](https://github.com/marcelm/cutadapt)), for libraries requiring removal of fixed-length sequences (e.g. SMARTer RNA-seq libraries where the first ~7 nt should be trimmed from the 5′ end) is included.
-   - Human read filtering with NextGenMap ([nextgenmap](https://github.com/Cibiv/NextGenMap) and [samtools](https://github.com/samtools/samtools)). Nextgenmap maps reads against human reference genome (GRCh38) using >95% identity over ≥75% read length. Samtools extracts non-human reads and reconverts to FASTQ format.
-3. Taxonomic classification with Kraken2 ([Kraken2](https://github.com/DerrickWood/kraken2)) and abundance estimation with Bracken ([Bracken] (https://github.com/jenniferlu717/Bracken)) , which refines taxonomic abundances to the genus level.
+Both setups include a JSON configuration example, a Conda environment, a Dockerfile, and a Spark runner. Use the step-wise setup for step-level reruns or the single-task setup to keep intermediate data on local scratch.
 
-### Flow chart
+## Install and run
 
-<img src="/Flowchart.png" height="85%" width="65%" >
+From the repository root, install the tools with Conda (or build the Docker image described in the setup README):
 
+```sh
+conda env create -n biopipe -f step-wise/environment.yml
+conda activate biopipe
+python -m pip install 'pyspark==3.5.3'
+```
 
-### Contents
-The content of the repository is as follows:
+Copy `step-wise/example.local.json` or `single-task/example.local.json` to `config.json`. Set the input FASTQ paths, `output_root`, `scratch_root`, reference paths, and `threads`. All paths must be accessible to the process; for a Spark cluster, the input and output paths must be shared by the driver and executors. For HDFS, start from the corresponding `example.hdfs.json` and install/configure the Hadoop CLI on every executor.
 
-- src - contains the source Jupyter notebooks files for each bioinformatic program
-- settings - consists configuration file for arguments to the program in YAML format
-- airflow_pipeline - Python script for the running the pipeline as Airflow DAG
+Run either setup locally with Spark:
 
-**Installation and Setup**
+```sh
+python step-wise/spark_runner.py --config config.json --mode run --master 'local[2]'
+python single-task/spark_runner.py --config config.json --mode run --master 'local[2]'
+```
 
-To setup the pipeline we first need a running Hospworks cluster. To know more about open-source version of Hopsworks and installation check the [github repo](https://github.com/dhananjay-mk/hopsworks) or visit the official [documentation](https://docs.hopsworks.ai/latest/)
+Run only the command for your chosen setup. For a cluster, use `spark-submit` and see the [step-wise](step-wise/README.md) or [single-task](single-task/README.md) instructions for resource and container settings.
 
-Once the Hopsworks cluster is installed, the pipeline can be setup in below steps:
- 1. Create a Hopsworks project
- 2. Install the packages using PyPI or conda installer in the Project Environment
+## Citation
 
-    - **trimmomatic** - upload jar
-    - **cutadapt** (optional) – conda
-    - **nextgenmap** - conda
-    - **samtools** - conda
-    - **pysam** - pip
-    - **kraken2** - build from source
-    - **bracken2** - build from source
-
- 3. Create datasets for output and input. Upload the data to be processed into the input dataset
- 4. Clone this repo into the Hopsworks project or upload the source code inside the `Jupyter` dataset.
- 5. Create dataset folders in Hopsworks project and upload the input data and optionally create output dataset.
- 6. Modify the `settings.yml` to have the correct `OUTPUT_DATASET` path, `INPUT_ROOT_PATH` and a work directory in `RUN_FOLDER` to store all the output sub-folders. Next, check and modify the path parameters for each job step and any arguments to the programs you want to change. e.g. kraken2 reference database path.
- 7. Create jobs for each program. Adjust the number of executors and its memory in `Advanced configuration` according to the resources available in the cluster. Typically executor memory of atleast 4GB and minimum 2 vcores is suggested. The number of executors can be increased upto the maximum capacity in cluster. 
- 8. The jobs can be run independently from the Hopsworks Jobs from UI. This is useful if you want to run only a part or single program. Optionally to schedule or run the whole pipeline, Apache Airflow is available in the Hopsworks Project home page. Upload the airflow pipeline python script to the Hopsworks Airflow page. This contains the Airflow DAG. You have the modify `PROJECT_NAME`, `DAG_OWNER` to the Hopsworks username and provide a unique DAG name under `dag_id`. Also modify the `SETTINGS` field to the correct project path of the `settings.yml` you created. Once the configuration and file paths are set, the pipeline can be run from the Airflow home page by trigger the DAG created.
-
-**Output**
-Trimmed, filtered FASTQ files (non-human reads)
-Kraken2 classification reports
-Bracken genus-level abundance tables
-
-**Citation**
-If you use Biopipe, please cite:
-Mukhedkar D, et al. (2025) Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.
+Mukhedkar D, et al. (2025). *Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.*
