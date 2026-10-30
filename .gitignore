@@ -3,3 +3,4 @@
 __pycache__/
 hopsworks-api/
 logs-job-biopipe_hopsfs_mount_probe-*/
+/AGENTS.md
