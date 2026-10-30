@@ -44,4 +44,4 @@ Run only the command for your chosen setup. For a cluster, use `spark-submit` an
 
 ## Citation
 
-Mukhedkar D, et al. (2025). *Stable cores and dynamic peripheries: spatial structuring dominates over temporal turnover in wastewater microbiomes across 16 Swedish cities.*
+Mukhedkar D, Stosic MS, Székely AJ, Avershina E and Arroyo Mühr LS (2026). Strong catchment-specific structuring of Swedish wastewater microbiomes in a paired two-timepoint metagenomic survey. *Front. Microbiol.* 17:1907599. doi: [10.3389/fmicb.2026.1907599](https://doi.org/10.3389/fmicb.2026.1907599).
