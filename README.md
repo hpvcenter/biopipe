@@ -1,6 +1,6 @@
 # Biopipe
 
-Biopipe is a metatranscriptomics pipeline for taxonomic profiling of sequencing reads. It processes FASTQ files with Trimmomatic, optional Cutadapt, NextGenMap, samtools, and Kraken2. Apache Spark runs samples in parallel using shared local storage or HDFS. Provide your own reads, human reference, adapter files, and Kraken2 database.
+Biopipe is a file-parallel, scalable Spark-based metatranscriptomics pipeline for taxonomic profiling of sequencing reads. It processes FASTQ files with Trimmomatic, optional Cutadapt, NextGenMap, samtools, and Kraken2. It runs samples in parallel using shared local storage or HDFS. Provide your own reads, human reference, adapter files, and Kraken2 database.
 
 ## Pipeline
 
