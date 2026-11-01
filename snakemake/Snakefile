@@ -1,0 +1,62 @@
+"""One complete Biopipe job per sample; no dependency on another backend."""
+
+import re
+import sys
+from pathlib import Path
+
+from snakemake.utils import min_version
+
+min_version("9.13.7")
+sys.path.insert(0, str(Path(workflow.basedir) / "scripts"))
+import biopipe
+
+biopipe.validate_config(config)
+SAMPLES = {sample["id"]: sample for sample in config["samples"]}
+ROOT = config["output_root"].rstrip("/")
+PAIRED = "(?:" + "|".join(re.escape(name) for name, sample in SAMPLES.items() if sample.get("r2")) + ")"
+SINGLE = "(?:" + "|".join(re.escape(name) for name, sample in SAMPLES.items() if not sample.get("r2")) + ")"
+PUBLISH_FASTQ = config["publish"].get("fastq", False)
+KRAKEN_OUTPUT = [ROOT + "/{sample}/kraken_output.txt"] if config["publish"].get("kraken_output") else []
+
+
+rule all:
+    input:
+        [str(path) for sample in SAMPLES.values() for path in biopipe.output_paths(config, sample).values()]
+
+
+rule process_sample:
+    input:
+        data=lambda wildcards: biopipe.input_paths(config, SAMPLES[wildcards.sample]),
+        implementation=[workflow.source_path("scripts/biopipe.py"), workflow.source_path("scripts/run_sample.py"), workflow.source_path("environment.yml")]
+    output:
+        report=ROOT + "/{sample}/kraken_report.txt",
+        metrics=ROOT + "/{sample}/metrics.json",
+        fastq=[ROOT + "/{sample}/nonhuman_R1.fastq.gz", ROOT + "/{sample}/nonhuman_R2.fastq.gz"] if PUBLISH_FASTQ else [],
+        kraken=KRAKEN_OUTPUT
+    log:
+        ROOT + "/{sample}/pipeline.log"
+    wildcard_constraints:
+        sample=PAIRED if PAIRED != "(?:)" else "(?!)"
+    params:
+        settings=lambda wildcards: biopipe.science_settings(config),
+        sample=lambda wildcards: SAMPLES[wildcards.sample]
+    threads:
+        config["threads"]
+    resources:
+        mem_mb=config.get("scheduling", {}).get("mem_mb", 16000),
+        disk_mb=config.get("scheduling", {}).get("disk_mb", 100000),
+        tmpdir=config["scratch_root"]
+    script:
+        "scripts/run_sample.py"
+
+
+# Snakemake requires statically declared outputs. Reuse the same job definition
+# for single-end samples, omitting the paired FASTQ rather than inventing a file.
+use rule process_sample as process_single_end with:
+    output:
+        report=ROOT + "/{sample}/kraken_report.txt",
+        metrics=ROOT + "/{sample}/metrics.json",
+        fastq=[ROOT + "/{sample}/nonhuman_R1.fastq.gz"] if PUBLISH_FASTQ else [],
+        kraken=KRAKEN_OUTPUT
+    wildcard_constraints:
+        sample=SINGLE if SINGLE != "(?:)" else "(?!)"

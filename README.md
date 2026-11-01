@@ -1,6 +1,6 @@
 # Biopipe
 
-Biopipe is a file-parallel, scalable Spark-based metatranscriptomics pipeline for taxonomic profiling of sequencing reads. It processes FASTQ files with Trimmomatic, optional Cutadapt, NextGenMap, samtools, and Kraken2. It runs samples in parallel using shared local storage or HDFS. Provide your own reads, human reference, adapter files, and Kraken2 database.
+Biopipe is a file-parallel metatranscriptomics pipeline for taxonomic profiling of sequencing reads. It processes FASTQ files with Trimmomatic, optional Cutadapt, NextGenMap, samtools, and Kraken2. Run samples in parallel with the Spark setups or the standalone Snakemake version. Provide your own reads, human reference, adapter files, and Kraken2 database.
 
 ## Pipeline
 
@@ -8,22 +8,23 @@ Biopipe is a file-parallel, scalable Spark-based metatranscriptomics pipeline fo
 2. Map reads to a human reference with NextGenMap and recover unmapped reads with samtools.
 3. Classify non-human reads with Kraken2 and write a classification report.
 
-The flowchart shows the broader pipeline design. The two current runners end at the Kraken2 report; Bracken abundance estimation is not included.
+The flowchart shows the broader pipeline design. The current runners end at the Kraken2 report; Bracken abundance estimation is not included.
 
 ![Biopipe pipeline flowchart](Flowchart.png)
 
 ## Choose a setup
 
-| Setup | Spark work | Intermediate files | Resume point |
+| Setup | Unit of work | Intermediate files | Resume point |
 | --- | --- | --- | --- |
 | [Step-wise](step-wise/README.md) | One Spark job per processing step, with one task per sample | Shared storage between steps | First unfinished step |
 | [Single-task](single-task/README.md) | One Spark task runs the full pipeline for a sample | Local scratch, then final results on shared storage | Whole sample |
+| [Standalone Snakemake](snakemake/README.md) | One Snakemake job runs the full pipeline for a sample | Local scratch, then final results on local/shared POSIX storage | Whole sample |
 
-Both setups include a JSON configuration example, a Conda environment, a Dockerfile, and a Spark runner. Use the step-wise setup for step-level reruns or the single-task setup to keep intermediate data on local scratch.
+Both Spark setups include a JSON configuration example, a Conda environment, a Dockerfile, and a Spark runner. Use the step-wise setup for step-level reruns or the single-task setup to keep intermediate data on local scratch. The [Snakemake version](snakemake/README.md) has its own configuration, environment, processing code, and tests; it runs independently of Spark and Kubernetes. Follow its README for installation and execution. The commands below describe the Spark setups.
 
 ## Prerequisites and infrastructure
 
-- **All runs:** Provide FASTQ reads, adapter files, a human reference, and a Kraken2 database. Install the tools and PySpark with Conda or use the supplied Docker image. Allow enough local scratch space for a sample and its references.
+- **All runs:** Provide FASTQ reads, adapter files, a human reference, and a Kraken2 database. Allow enough local scratch space for a sample and its references. For the Spark setups, install the tools and PySpark with Conda or use the supplied Docker image. The standalone Snakemake environment includes its scheduler and processing tools.
 - **Local Spark:** A separate cluster is unnecessary. The driver can run in `local[N]` mode with readable input files and a writable output directory.
 - **Distributed Spark:** Provide a Spark cluster (standalone, YARN, or Kubernetes) with PySpark on the driver and the bioinformatics tools on each executor. The driver and executors need access to the same input and output storage, and each executor needs writable local scratch. Set `spark.task.cpus` to the configuration's `threads` value. The supplied images and examples use Spark 3.5.3.
 - **HDFS, if used:** Install the Hadoop CLI and provide filesystem configuration and credentials on every executor. Use the `example.hdfs.json` configuration for your chosen setup.
