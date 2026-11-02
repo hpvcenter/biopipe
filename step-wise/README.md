@@ -101,18 +101,6 @@ The service account needs create/get/list/watch/delete on pods, services, config
 persistentvolumeclaims in the namespace. Driver and executors must see the same data, so use a
 shared volume (a ReadWriteOnce volume works only when all pods run on the same node) or HDFS.
 
-## Verified
-
-- 17 unit tests: step chaining, blocked steps, resume after a late failure (only
-  the failed step reruns), duplicate-marker race, reference cache, a fake `hadoop fs`
-  backend, and real `local[2]` Spark jobs with fake tool executables
-  (`tests/test_spark.py`, skipped without pyspark).
-- The `local` and `spark-k8s` images build and run the full pipeline with the real tools.
-- End to end on Spark on Kubernetes (Spark 3.5.3, 3 nodes, 2 executors with 1 core and
-  2048 MB each, one ReadWriteOnce volume): all five steps ran as separate Spark jobs spread
-  over both executors, the Kraken2 report matched a local run, and a second run skipped every
-  task. This is a functional check of the code path, not a measure of classification quality
-  or speed.
 
 ## Limits
 
