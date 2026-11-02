@@ -176,8 +176,3 @@ the report, per-read classifications, and decompressed non-human FASTQs with an
 existing sample executor, add `--compare-with /path/to/single-task/biopipe.py`.
 That comparison is optional and is not a runtime dependency of this version.
 
-Verified with Snakemake 9.13.7: all 9 automated tests passed. An offline real-tool
-comparison for both read layouts matched the existing single-task executor's
-Kraken report and per-read output byte for byte, with matching decompressed
-non-human FASTQs. These tiny fixtures verify behavior, not performance or
-classification accuracy on real samples.
